@@ -1,4 +1,6 @@
-(ns project-euler.core)
+(ns project-euler.core
+  (:require [clojure.string :as string]
+            [clojure.math.combinatorics :as combo]))
 
 (defn problem1
   "If we list all the natural numbers below 10 that are multiples of 3 or 5, we get 3, 5, 6 and 9. The sum of these multiples is 23.
@@ -16,10 +18,9 @@ Find the sum of all the multiples of 3 or 5 below 1000."
 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, ...
 By considering the terms in the Fibonacci sequence whose values do not exceed four million, find the sum of the even-valued terms." []
   []
-  (let [fibo-seq (lazy-cat [1 1] (map + fibo-seq (rest fibo-seq)))
+  (let [fibo-seq (lazy-cat [1 1] (map + (rest fibo-seq) fibo-seq))
         fibo4M (take-while (partial > 4000000) fibo-seq)]
     (apply + (filter even? fibo4M))))
-
 
 
 (defn sieve [s]
@@ -28,45 +29,62 @@ By considering the terms in the Fibonacci sequence whose values do not exceed fo
                                  (rest s))))))
 (def primes (lazy-seq (sieve (iterate inc 2))))
 
-
-(defn red
-  [num div]
-   (if (zero? (mod num div))
-     (red (/ num div) div)
-     num))
-
-(defn find-max-prime-factor [num prime-seq]
-  (let [prime (first prime-seq)]
-    (if (<= (/ num prime) 1)
-      num
-      (find-max-prime-factor (red num prime) (rest prime-seq)))))
-
-
 (defn problem3
   "The prime factors of 13195 are 5, 7, 13 and 29.
 What is the largest prime factor of the number 600851475143 ?" []
   []
-  (find-max-prime-factor 600851475143 primes))
+  (let [remove-factor (fn [num div]
+                 (if (zero? (mod num div))
+                   (red (/ num div) div)
+                   num))
+        find-max-prime-factor (fn [num prime-seq]
+          (let [prime (first prime-seq)]
+            (if (<= (/ num prime) 1)
+              num
+              (find-max-prime-factor (remove-factor num prime) (rest prime-seq)))))]
+  (find-max-prime-factor 600851475143 primes)))
 
+; Python, just for fun:
+;>>> from itertools import combinations, imap, ifilter
+;>>> ispalindrome = lambda num: str(num) == str(num)[::-1]
+;>>> max(ifilter(ispalindrome, imap(lambda (a,b): a*b, combinations(range(100,999),2))))
+; 906609
 (defn problem4
+  "A palindromic number reads the same both ways. The largest palindrome made from the product of two 2-digit numbers is 9009 = 91 × 99.
+
+Find the largest palindrome made from the product of two 3-digit numbers."
+  []
+  (let [palindrome? #(= (clojure.string/reverse (str %1)) (str %1))
+        palindromes (filter palindrome? (map (partial apply *)
+                      (combo/combinations (range 999 100 -1) 2)))]
+  (apply max palindromes)))
+
+
+; Template
+#_(defn problem
   ""
   [])
 
+
+
+; I hope this structure becomes one day
+; kind of unittest :)
+
 (def project-euler
-  {1 { :func problem1
+  '({ :func problem1
        :desc "Multiples of 3 and 5"
-       :test {:input [] :output [233168]}}
-
-   2 { :func problem2
+       :output 233168}
+    { :func problem2
        :desc "Even Fibonacci numbers"
-       :test {:input [] :output [4613732]}
-       }
-   3 { :func problem3
+       :output 4613732 }
+    { :func problem3
        :desc "Largest prime factor"
-       :test {:input [] :output [6857]}
-       }
-   4 { :func problem4
-       :desc
-       :test {:input [] :output []}}})
+       :output 6857 }
+    { :func problem4
+       :desc "Largest palindrome product"
+       :output 906609}))
 
-
+; Idea, stderr the not true #(filter false?)
+(def all-true? #(reduce (partial = true) %))
+(all-true? (for [problem project-euler]
+    (= ((:func problem) (:output problem)))))
