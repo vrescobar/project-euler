@@ -1,14 +1,9 @@
 # project-euler
 
-My solutions in clojure to the project Euler problems.
+My solutions in clojure to the [project Euler problems](https://projecteuler.net/problems).
 
-If you are interested in the PRoject Euler, I recommend you to solve the problems by yourself.
+If you are interested in the Project Euler, I recommend you to solve the problems by yourself.
 
 ## Usage
-
-lein repl
-
-## License
-
-TBD
+This is not a project intendeed to be used, but if you you want to go ahead I recommend you Light Table live mode or just lein repl.
 
